@@ -62,7 +62,7 @@ namespace PngJpegComparer
                     string[] line = lines[i].Split(',');
                     if (lastNecessaryColumn < line.Length && line[imageQualityIndex] == Settings.ImageQuality)
                     {
-                        filteredInputData.Add(line[fileIndex] + "," + line[destinationNEFIndex] +  ", " + line[destinationTIFFIndex]);
+                        filteredInputData.Add(line[fileIndex] + "," + line[destinationNEFIndex] + ", " + line[destinationTIFFIndex]);
                     }
                 }
 
@@ -85,15 +85,14 @@ namespace PngJpegComparer
             try
             {
                 string[] lines = File.ReadAllLines(file);
-                
+
                 List<string> firstLine = new List<string>(lines[0].Split(','));
 
                 int fileIndex = firstLine.FindIndex(x => x == "File");
-                int destinationNEFIndex = firstLine.FindIndex(x => x == "NEF");
-                //int destinationTIFFIndex = firstLine.FindIndex(x => x == "TIFF");
+                int destinationIndex = firstLine.FindIndex(x => x == "TIFF");
 
                 Directory.CreateDirectory(outputDirrectory);
-                Console.WriteLine("Downloaded:");
+                Console.WriteLine("Downloading files...");
 
                 string totalFiles = (lines.Length - 1).ToString();
 
@@ -101,14 +100,27 @@ namespace PngJpegComparer
                 {
                     string[] line = lines[i].Split(',');
                     string name = line[fileIndex];
-                    string location = line[destinationNEFIndex];
-                    using (var client = new WebClient())
+                    string location = line[destinationIndex];
+                    string fileName = Path.Combine(outputDirrectory, name) + Settings.ImageDownloadFormat;
+
+                    if (!File.Exists(fileName))
                     {
-                        client.DownloadFile(location, Path.Combine(outputDirrectory, name) + Settings.ImageDownloadFormat);
+                        using (var client = new WebClient())
+                        {
+                            client.DownloadFile(location, fileName);
+                        }
                     }
-                    Console.WriteLine(i.ToString().PadLeft(totalFiles.Length, '0') + "/" + totalFiles);
+
+                    if ((i == 1) || (i % 10 == 0))  // first and then every 10th
+                    {
+                        Console.WriteLine(i.ToString().PadLeft(totalFiles.Length, '0') + " / " + totalFiles);
+                    }
+                    else
+                    {
+                        Console.WriteLine(i.ToString().PadLeft(totalFiles.Length, '0'));
+                    }
                 }
-                
+
                 Console.WriteLine((lines.Length - 1).ToString() + " files downloaded successfully to:");
                 Console.WriteLine(outputDirrectory);
             }
