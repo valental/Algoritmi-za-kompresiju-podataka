@@ -5,14 +5,20 @@ using System.Net;
 
 namespace PngJpegComparer
 {
-    public class CSVParser
+    public class PicturesDownloader
     {
-        public static void Load() => Load(Settings.ResourceFile, Settings.FilteredInputDataFile);
+        public static void FilterCSV() => FilterCSV(Settings.ResourceFile, Settings.FilteredInputDataFile);
 
-        public static void Load(string file, string outputFile)
+        public static void FilterCSV(string file, string outputFile)
         {
             try
             {
+                if (File.Exists(outputFile))
+                {
+                    Console.WriteLine("Output file already exists.");
+                    return;
+                }
+
                 string[] lines = File.ReadAllLines(file);
                 if (lines.Length == 0)
                 {
@@ -26,13 +32,6 @@ namespace PngJpegComparer
                 if (fileIndex < 0)
                 {
                     Logger.Log("Error in CSVParser: File name column is missing.");
-                    return;
-                }
-
-                int destinationNEFIndex = firstLine.FindIndex(x => x == "NEF");
-                if (destinationNEFIndex < 0)
-                {
-                    Logger.Log("Error in CSVParser: NEF destination column is missing.");
                     return;
                 }
 
@@ -53,23 +52,21 @@ namespace PngJpegComparer
                 // there is one column with a comma and that messes with the index
                 imageQualityIndex++;
 
-                int lastNecessaryColumn = Math.Max(Math.Max(fileIndex, destinationNEFIndex), Math.Max(destinationTIFFIndex, imageQualityIndex));
-                List<string> filteredInputData = new List<string>();
-                filteredInputData.Add("File,NEF,TIFF");
+                int lastNecessaryColumn = Math.Max(Math.Max(fileIndex, destinationTIFFIndex), imageQualityIndex);
+                List<string> filteredInputData = new List<string> { "File,TIFF" };
 
                 for (int i = 1; i < lines.Length; i++)
                 {
                     string[] line = lines[i].Split(',');
                     if (lastNecessaryColumn < line.Length && line[imageQualityIndex] == Settings.ImageQuality)
                     {
-                        filteredInputData.Add(line[fileIndex] + "," + line[destinationNEFIndex] + ", " + line[destinationTIFFIndex]);
+                        filteredInputData.Add(line[fileIndex] + ", " + line[destinationTIFFIndex]);
                     }
                 }
 
                 File.WriteAllLines(Settings.FilteredInputDataFile, filteredInputData.ToArray());
 
-                Console.WriteLine("Filtered input data successfully saved:");
-                Console.WriteLine(outputFile);
+                Console.WriteLine("Filtered input data successfully saved: " + outputFile);
                 Console.WriteLine("Lines: " + filteredInputData.Count);
             }
             catch (Exception ex)
@@ -80,7 +77,7 @@ namespace PngJpegComparer
 
         public static void DownloadFiles() => DownloadFiles(Settings.FilteredInputDataFile, Settings.OutputDirrectory);
 
-        async public static void DownloadFiles(string file, string outputDirrectory)
+        public static void DownloadFiles(string file, string outputDirrectory)
         {
             try
             {
@@ -94,7 +91,10 @@ namespace PngJpegComparer
                 Directory.CreateDirectory(outputDirrectory);
                 Console.WriteLine("Downloading files...");
 
-                string totalFiles = (lines.Length - 1).ToString();
+                int totalFileNumber = lines.Length - 1;
+                string totalFiles = totalFileNumber.ToString();
+                int downloaded = 0;
+                int skipped = 0;
 
                 for (int i = 1; i < lines.Length; i++)
                 {
@@ -102,32 +102,47 @@ namespace PngJpegComparer
                     string name = line[fileIndex];
                     string location = line[destinationIndex];
                     string fileName = Path.Combine(outputDirrectory, name) + Settings.ImageDownloadFormat;
+                    bool fileAlreadyExists = File.Exists(fileName);
 
-                    if (!File.Exists(fileName))
+                    if (!fileAlreadyExists)
                     {
                         using (var client = new WebClient())
                         {
                             client.DownloadFile(location, fileName);
                         }
-                    }
-
-                    if ((i == 1) || (i % 10 == 0))  // first and then every 10th
-                    {
-                        Console.WriteLine(i.ToString().PadLeft(totalFiles.Length, '0') + " / " + totalFiles);
+                        downloaded++;
                     }
                     else
                     {
-                        Console.WriteLine(i.ToString().PadLeft(totalFiles.Length, '0'));
+                        skipped++;
                     }
+
+                    if ((i == 1) || (i % 10 == 0) || (i == totalFileNumber))  // first and then every 10th
+                    {
+                        Console.Write(i.ToString().PadLeft(totalFiles.Length, '0') + " / " + totalFiles + " ");
+                    }
+                    else
+                    {
+                        Console.Write(i.ToString().PadLeft(totalFiles.Length, '0').PadRight(2 * totalFiles.Length + 4));
+                    }
+
+                    Console.WriteLine(fileAlreadyExists ? "skipped" : "");
                 }
 
-                Console.WriteLine((lines.Length - 1).ToString() + " files downloaded successfully to:");
+                Console.WriteLine(downloaded + " files downloaded successfully to:");
                 Console.WriteLine(outputDirrectory);
+                Console.WriteLine(skipped + " files skipped.");
             }
             catch (Exception ex)
             {
                 Logger.Log("Error in CSVParser.DownloadFiles", ex);
             }
+        }
+
+        public static void Download()
+        {
+            FilterCSV();
+            DownloadFiles();
         }
     }
 }
