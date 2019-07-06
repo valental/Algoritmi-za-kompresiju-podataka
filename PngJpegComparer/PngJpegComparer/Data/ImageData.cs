@@ -1,23 +1,22 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace PngJpegComparer
 {
     public class ImageData
     {
         public string File { get; set; }
+        public List<long> Sizes { get; set; } = new List<long>();
         
-        public long SizeTiff { get; set; }
-        public long SizePng { get; set; }
-        public long SizeJpeg { get; set; }
-
-        public string ToStringWithoutTiff()
-        {
-            return File + "," + SizePng + "," + SizeJpeg;
-        }
-
         public override string ToString()
         {
-            return File + "," + SizeTiff + "," + SizePng + "," + SizeJpeg;
+            StringBuilder stringBuilder = new StringBuilder(File);
+            foreach (long size in Sizes)
+            {
+                stringBuilder.Append(",");
+                stringBuilder.Append(size.ToString());
+            }
+            return stringBuilder.ToString();
         }
 
         public override bool Equals(object obj)
