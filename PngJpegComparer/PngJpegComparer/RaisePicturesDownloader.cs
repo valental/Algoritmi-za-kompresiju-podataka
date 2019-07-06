@@ -5,9 +5,10 @@ using System.Net;
 
 namespace PngJpegComparer
 {
-    public class PicturesDownloader
+    public static class RaisePicturesDownloader
     {
-        public static void FilterCSV() => FilterCSV(Settings.ResourceFile, Settings.FilteredInputDataFile);
+        private const string imageDownloadFormat = ".tif";
+        private const string imageQuality = "Lossless Compressed RAW (14-bit)";
 
         public static void FilterCSV(string file, string outputFile)
         {
@@ -58,13 +59,13 @@ namespace PngJpegComparer
                 for (int i = 1; i < lines.Length; i++)
                 {
                     string[] line = lines[i].Split(',');
-                    if (lastNecessaryColumn < line.Length && line[imageQualityIndex] == Settings.ImageQuality)
+                    if (lastNecessaryColumn < line.Length && line[imageQualityIndex] == imageQuality)
                     {
                         filteredInputData.Add(line[fileIndex] + ", " + line[destinationTIFFIndex]);
                     }
                 }
 
-                File.WriteAllLines(Settings.FilteredInputDataFile, filteredInputData.ToArray());
+                File.WriteAllLines(outputFile, filteredInputData.ToArray());
 
                 Console.WriteLine("Filtered input data successfully saved: " + outputFile);
                 Console.WriteLine("Lines: " + filteredInputData.Count);
@@ -74,9 +75,7 @@ namespace PngJpegComparer
                 Logger.Log("Error in CSVParser.Load", ex);
             }
         }
-
-        public static void DownloadFiles() => DownloadFiles(Settings.FilteredInputDataFile, Settings.OutputDirrectory);
-
+        
         public static void DownloadFiles(string file, string outputDirrectory)
         {
             try
@@ -101,7 +100,7 @@ namespace PngJpegComparer
                     string[] line = lines[i].Split(',');
                     string name = line[fileIndex];
                     string location = line[destinationIndex];
-                    string fileName = Path.Combine(outputDirrectory, name) + Settings.ImageDownloadFormat;
+                    string fileName = Path.Combine(outputDirrectory, name) + imageDownloadFormat;
                     bool fileAlreadyExists = File.Exists(fileName);
 
                     if (!fileAlreadyExists)
@@ -139,10 +138,10 @@ namespace PngJpegComparer
             }
         }
 
-        public static void Download()
+        public static void Download(string file)
         {
-            FilterCSV();
-            DownloadFiles();
+            FilterCSV(Settings.GetResourceFile(file), Settings.GetFilteredInputDataFile(file));
+            DownloadFiles(Settings.GetFilteredInputDataFile(file), Settings.GetOutputDirrectory(file));
         }
     }
 }
