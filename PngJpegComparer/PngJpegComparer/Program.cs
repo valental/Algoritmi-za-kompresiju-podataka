@@ -21,6 +21,24 @@ namespace PngJpegComparer
                 FileType.PNG, new List<FileType> { FileType.JPEG },
                 SearchOption.AllDirectories
                 );
+
+            // Save 10 examples of RAISE images in png and in jpeg
+            FormatConverter.SaveExamples(
+                Settings.GetOutputDirrectory(Settings.RaiseFile),
+                Settings.GetOutputDirrectory(Settings.RaiseFile) + "_examples",
+                10,
+                FileType.TIFF, new List<FileType>() { FileType.PNG, FileType.JPEG },
+                SearchOption.TopDirectoryOnly
+                );
+
+            // Save 10 examples of Lego images in jpeg
+            FormatConverter.SaveExamples(
+                Settings.GetOutputDirrectory(Settings.LegoDirectory),
+                Settings.GetOutputDirrectory(Settings.LegoDirectory) + "_examples",
+                10,
+                FileType.PNG, new List<FileType>() { FileType.JPEG },
+                SearchOption.AllDirectories
+                );
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections.Generic;
 using System;
 using System.Text;
+using System.Linq;
 
 namespace PngJpegComparer
 {
@@ -28,16 +29,81 @@ namespace PngJpegComparer
             return size;
         }
         #endregion
-        
+
         private static string GetFileNameAndPartialPath(string folder, string file)
         {
             int pl = folder.Length;
             return file.Substring(pl + 1, file.Length - pl - 5);
         }
-        
+
+        public static void SaveExamples(
+            string sourceFolder, string targetFolder, int numExamples,
+            FileType fromType, List<FileType> toTypes,
+            SearchOption searchOption)
+        {
+            try
+            {
+
+                Console.WriteLine("\nCreating example images from folder " + sourceFolder + "...");
+                Random random = new Random();
+                string[] allFiles = Directory.GetFiles(sourceFolder, "*.*", searchOption);
+                List<string> files = new List<string>();
+                foreach (string file in allFiles)
+                {
+                    if (Path.GetExtension(file) == "." + fromType.GetExtension())
+                    {
+                        files.Add(file);
+                    }
+                }
+
+                if (!Directory.Exists(targetFolder))
+                {
+                    Directory.CreateDirectory(targetFolder);
+                }
+
+                List<string> exampleFiles = files.OrderBy(x => random.Next()).Take(numExamples).ToList();
+                foreach (string file in exampleFiles)
+                {
+                    Image originalImage = Image.FromFile(file);
+                    string name = GetFileNameAndPartialPath(sourceFolder, file) + ".";
+                    string newImageName = targetFolder + @"\" + name;
+
+                    // Save in new location in old file type
+                    try
+                    {
+                        originalImage.Save(newImageName + fromType.GetExtension(), fromType.GetImageFormat());
+                        Console.WriteLine(name + fromType.GetExtension() + " created");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log("Error in FormatConverter.SaveExamples, file: " + file + ", type: " + fromType.ToString(), ex);
+                    }
+
+                    // Save in all requested file types
+                    foreach (FileType fileType in toTypes)
+                    {
+                        try
+                        {
+                            originalImage.Save(newImageName + fileType.GetExtension(), fileType.GetImageFormat());
+                            Console.WriteLine(name + fromType.GetExtension() + " created");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log("Error in FormatConverter.SaveExamples, file: " + file + ", type: " + fileType.ToString(), ex);
+                        }
+                    }
+                    originalImage.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log("Error in FormatConverter.SaveExamples", ex);
+            }
+        }
+
         public static void CompareFormats(
-            string folder, string resultsFile, 
-            FileType fromType, List<FileType> toTypes, 
+            string folder, string resultsFile,
+            FileType fromType, List<FileType> toTypes,
             SearchOption searchOption
             )
         {
@@ -135,7 +201,7 @@ namespace PngJpegComparer
                                 {
                                     totalSizes[j] += imageData.Sizes[j];
                                 }
-                                
+
                                 StringBuilder sb = new StringBuilder((i++).ToString());
                                 sb.Append(". ");
                                 sb.Append(fromType.ToString());
@@ -149,7 +215,7 @@ namespace PngJpegComparer
                                     sb.Append(": ");
                                     sb.Append(imageData.Sizes[j].ToString());
                                 }
-                                
+
                                 Console.WriteLine(sb.ToString());
                             }
                         }
