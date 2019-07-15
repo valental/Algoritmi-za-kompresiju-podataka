@@ -10,20 +10,24 @@ namespace PngJpegComparer
 
         }
 
+        /// <summary>
+        /// Main method of the console application.
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
         static void Main(string[] args)
         {
             // RAISE
             RaisePicturesDownloader.Download(Settings.RaiseFile);
             FormatConverter.CompareFormats(
                 Settings.GetOutputDirrectory(Settings.RaiseFile), Settings.GetResultsFile(Settings.RaiseFile),
-                FileType.TIFF, new List<FileType> { FileType.PNG, FileType.JPEG },
+                ImageType.TIFF, new List<ImageType> { ImageType.PNG, ImageType.JPEG },
                 SearchOption.TopDirectoryOnly
                 );
 
             // LEGO brick images
             FormatConverter.CompareFormats(
                 Settings.LegoDirectory, Settings.GetResultsFile(Settings.LegoFile),
-                FileType.PNG, new List<FileType> { FileType.JPEG },
+                ImageType.PNG, new List<ImageType> { ImageType.JPEG },
                 SearchOption.AllDirectories
                 );
 
@@ -32,7 +36,7 @@ namespace PngJpegComparer
                 Settings.GetOutputDirrectory(Settings.RaiseFile),
                 Settings.GetOutputDirrectory(Settings.RaiseFile) + "_examples",
                 10,
-                FileType.TIFF, new List<FileType>() { FileType.PNG, FileType.JPEG },
+                ImageType.TIFF, new List<ImageType> { ImageType.PNG, ImageType.JPEG },
                 SearchOption.TopDirectoryOnly
                 );
 
@@ -41,7 +45,7 @@ namespace PngJpegComparer
                 Settings.GetOutputDirrectory(Settings.LegoDirectory),
                 Settings.GetOutputDirrectory(Settings.LegoDirectory) + "_examples",
                 10,
-                FileType.PNG, new List<FileType>() { FileType.JPEG },
+                ImageType.PNG, new List<ImageType> { ImageType.JPEG },
                 SearchOption.AllDirectories
                 );
         }

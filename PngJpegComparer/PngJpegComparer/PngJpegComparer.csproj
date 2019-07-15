@@ -47,8 +47,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Data\FileType.cs" />
+    <Compile Include="Data\ImageTypeExtensions.cs" />
+    <Compile Include="Data\ImageType.cs" />
     <Compile Include="DownloadAndConvert\FormatConverter.cs" />
     <Compile Include="DownloadAndConvert\RaisePicturesDownloader.cs" />
     <Compile Include="Data\ImageData.cs" />
