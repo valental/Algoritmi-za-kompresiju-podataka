@@ -65,7 +65,7 @@ namespace PngJpegComparer
                 foreach (string file in exampleFiles)
                 {
                     Image originalImage = Image.FromFile(file);
-                    string name = GetFileNameAndPartialPath(sourceFolder, file) + ".";
+                    string name = GetFileNameAndPartialPath(sourceFolder, file).Replace('\\', '#') + ".";
                     string newImageName = targetFolder + @"\" + name;
 
                     // Save in new location in old file type
@@ -85,7 +85,7 @@ namespace PngJpegComparer
                         try
                         {
                             originalImage.Save(newImageName + fileType.GetExtension(), fileType.GetImageFormat());
-                            Console.WriteLine(name + fromType.GetExtension() + " created");
+                            Console.WriteLine(name + fileType.GetExtension() + " created");
                         }
                         catch (Exception ex)
                         {

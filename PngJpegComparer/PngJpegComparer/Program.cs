@@ -5,6 +5,11 @@ namespace PngJpegComparer
 {
     public class Program
     {
+        protected Program()
+        {
+
+        }
+
         static void Main(string[] args)
         {
             // RAISE
